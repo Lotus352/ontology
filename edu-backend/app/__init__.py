@@ -7,6 +7,7 @@ from app.routes.search import search_bp
 from app.routes.auth import auth_bp
 from app.routes.user import user_bp
 from app.routes.user_courses import user_courses_bp
+from app.routes.contents import contents_bp
 
 
 def create_app():
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(user_courses_bp)
+    app.register_blueprint(contents_bp)
 
     
     @app.route('/', methods=['GET'])

@@ -69,6 +69,10 @@ def add_user_course():
     if existing_user_course:
         return jsonify({'error': f'UserCourse with user_id {user_id} and course_id {course_id} already exists.'}), 400
 
+    prerequisite_incomplete = check_prerequisite_completion(user_id, course_id)
+    if prerequisite_incomplete:
+        return jsonify({'error': 'Cannot add UserCourse: prerequisite course is not completed.'}), 400
+    
     user_course = create_user_course(data)
     if not user_course:
         return jsonify({'error': 'Failed to create UserCourse.'}), 500

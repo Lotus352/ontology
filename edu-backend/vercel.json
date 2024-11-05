@@ -2,14 +2,20 @@
   "version": 2,
   "builds": [
     {
-      "src": "app/**/*.py",
-      "use": "@vercel/python"
+      "src": "edu-backend/run.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "15mb"
+      }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "app/routes/$1"
+      "dest": "edu-backend/run.py"
     }
-  ]
+  ],
+  "env": {
+    "PORT": "5000"
+  }
 }

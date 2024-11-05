@@ -1,4 +1,3 @@
-# Sử dụng API để thực thi truy vấn thay vì kết nối trực tiếp với cơ sở dữ liệu Neo4j
 from flask import Blueprint, jsonify, request
 from app.utils import execute_query
 import re
@@ -55,14 +54,14 @@ def search():
         data = request.get_json()
         search_query = data.get('query', '')
 
-        # Truy vấn lấy thông tin các môn học và các quan hệ ngữ nghĩa bổ sung
+        # Truy vấn lấy thông tin các môn học và các quan hệ ngữ nghĩa bổ sung bao gồm rdf__type
         query = """
           MATCH (ancestor:Resource {rdfs__label: 'Môn học'})
           MATCH (n:Resource)-[:rdfs__subClassOf*]->(ancestor)
           MATCH (instance:Resource)-[:rdf__type]->(n)
           OPTIONAL MATCH (instance)-[:ns0__coNoiDung|:ns0__songHanh|:ns0__noiDungCua|:ns0__tienQuyet|:ns0__hocTruoc|:ns0__thuocChuyenNganh]->(relatedInstance)
           RETURN DISTINCT instance.ns0__maMonHoc AS code, instance.rdfs__label AS courseName, elementId(instance) AS elementId,
-                          collect(DISTINCT relatedInstance) AS relatedInstances
+                          collect(DISTINCT relatedInstance) AS relatedInstances, n.rdfs__label AS rdf_type
         """
 
         # Chạy truy vấn và lấy kết quả thông qua API
@@ -86,9 +85,15 @@ def search():
         for result, embedding in course_embeddings:
             embedding = embedding.squeeze(0)
             similarity = F.cosine_similarity(search_embedding, embedding, dim=0).item()
-            # Thêm trọng số cho kết quả chứa từ khóa chính xác
+
+            # Thêm trọng số cho kết quả chứa từ khóa chính xác hoặc quan hệ ngữ nghĩa
             if keyword.lower() in result['courseName'].lower():
                 similarity += 0.1
+            if result['relatedInstances']:  # Nếu có các quan hệ ngữ nghĩa liên quan
+                similarity += 0.03 
+            if result['rdf_type'] and search_query.lower() in result['rdf_type'].lower():  
+                similarity += 0.1  
+
             result['similarity'] = similarity
             similar_results.append(result)
 
@@ -99,6 +104,7 @@ def search():
         response = [{
             'elementId': result['elementId'],
             'rdfs__label': result['courseName'],
+            'rdf_type': result['rdf_type'],
             'similarity': result['similarity']
         } for result in sorted_filtered_results]
 
