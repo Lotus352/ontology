@@ -81,19 +81,9 @@ def search():
 
         # Tính toán độ tương đồng cosine giữa từ khóa tìm kiếm và các tên môn học
         similar_results = []
-        keyword = "PBL"
         for result, embedding in course_embeddings:
             embedding = embedding.squeeze(0)
             similarity = F.cosine_similarity(search_embedding, embedding, dim=0).item()
-
-            # Thêm trọng số cho kết quả chứa từ khóa chính xác hoặc quan hệ ngữ nghĩa
-            if keyword.lower() in result['courseName'].lower():
-                similarity += 0.1
-            if result['relatedInstances']:  # Nếu có các quan hệ ngữ nghĩa liên quan
-                similarity += 0.03 
-            if result['rdf_type'] and search_query.lower() in result['rdf_type'].lower():  
-                similarity += 0.1  
-
             result['similarity'] = similarity
             similar_results.append(result)
 
