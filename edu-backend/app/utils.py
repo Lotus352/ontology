@@ -1,7 +1,6 @@
 from neo4j import GraphDatabase
 from app.config import Config
 
-# Thiết lập kết nối đến Neo4j
 db_uri = Config.NEO4J_URI
 db_user = Config.NEO4J_USER
 db_password = Config.NEO4J_PASSWORD
